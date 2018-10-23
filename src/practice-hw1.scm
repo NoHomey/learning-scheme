@@ -44,3 +44,27 @@
     )
     ((lambda (x0) (iterate x0 (next x0))) (find-initial-point x))
 )
+
+(define (arg-ext condition)
+    (lambda (f l)
+        (if (null? l)
+            #f
+            ((lambda (cache)
+                (car ((lambda (ext val l) (ext ext val l))
+                    (lambda (self ext l)
+                        (if (null? l)
+                            ext
+                            (self self (if (condition (f (car l)) (cdr ext)) (cache (car l)) ext) (cdr l))
+                        )
+                    )
+                    (cache (car l))
+                    (cdr l)
+                ))
+            )(lambda (x) (cons x (f x))))
+        )
+    )
+)
+
+(define argmax (arg-ext >))
+
+(define argmin (arg-ext <))
