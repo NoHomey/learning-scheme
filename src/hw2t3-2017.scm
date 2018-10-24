@@ -90,6 +90,19 @@
                                 ((eqv-ext? f g)
                                     (ext-simplify-number-after-op-normal-form (list '* 2 f))
                                 )
+                                ((and (list? f) (list? g) (eqv? (car f) (car g)) (eqv? '* (car f)))
+                                    (split-ext (lambda (m f1 g1)
+                                        (split-ext (lambda (m f2 g2)
+                                            (cond
+                                                ((eqv-ext? f1 f2) (ext-simplify-number-after-op-normal-form (list '* f1 (list '+ g1 g2))))
+                                                ((eqv-ext? f1 g2) (ext-simplify-number-after-op-normal-form (list '* f1 (list '+ g1 f2))))
+                                                ((eqv-ext? g1 g2) (ext-simplify-number-after-op-normal-form (list '* f2 (list '+ f1 f2))))
+                                                (else (list s f g)) 
+                                            )
+                                        ) g)
+                                    ) f)
+                                )
+                                ((and (list? g) (eqv? '* (car g)) (eqv? -1 (car (cdr g))) (eqv-ext? f (list-ref g 2))) 0)
                                 (else (list s f g))
                             )
                         )
@@ -133,7 +146,7 @@
     )
 )
 
-(define (ext-derive t) (ext-simplify (direct-ext-derive (ext-simplify  t))))
+(define (ext-derive t) (ext-simplify (direct-ext-derive (ext-simplify t))))
 
 (ext-derive '(* (* (* x (* x 2)) 3) 2))
 
